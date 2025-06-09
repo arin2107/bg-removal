@@ -1,30 +1,36 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
 import connectDB from './configs/mongodb.js';
 import userRouter from './routes/userRoutes.js';
 
-const PORT = process.env.PORT || 4000;
+dotenv.config();
+
 const app = express();
+const PORT = process.env.PORT || 4000;
 
-// 👉 Connect to MongoDB
-connectDB();
+// ✅ Raw body parser only for Svix webhooks
+app.use(
+  '/api/user/webhooks',
+  express.raw({ type: 'application/json' })
+);
 
-// 🛡️ Raw body parser for Clerk Webhooks (Svix)
-app.use('/api/user/webhooks', bodyParser.raw({ type: 'application/json' }));
-
-// 🧱 Normal middleware
+// ✅ JSON parser for all other routes
 app.use(express.json());
 app.use(cors());
 
-// ✅ Test route
+// ✅ Routes
+app.use('/api/user', userRouter);
 app.get('/', (req, res) => res.send("API is running"));
 
-// 🧩 Routes
-app.use('/api/user', userRouter);
+// ✅ DB connect & start
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+  }
+};
 
-// 🚀 Start the server
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-});
+startServer();

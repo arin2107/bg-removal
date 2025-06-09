@@ -30,6 +30,7 @@ const clerkWebhooks = async (req, res) => {
           firstName: data.first_name,
           lastName: data.last_name,
           photo: data.image_url,
+            creditBalance: 5,  // ✅ Add this line
         };
         await userModel.create(userData);
         console.log("✅ User saved:", userData);
